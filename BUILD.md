@@ -34,7 +34,7 @@ Set up your development environment:
 * Install Xcode from the Mac App Store.
 * Go to http://qt-project.org/downloads and download and install the latest Qt5 for Mac.
 * If you don't already have pip, install it with `sudo easy_install pip`.
-* Install virtualenv with `sudo pip install virtualenv`.
+* Install the easy dependencies: `sudo pip install flask stem pyinstaller itsdangerous`
 * Go to http://www.riverbankcomputing.co.uk/software/sip/download and download the latest SIP for Mac (I downloaded `sip-4.16.2.tar.gz`).
 * Go to http://www.riverbankcomputing.co.uk/software/pyqt/download5 and download the latest PyQt5 for Mac (I downloaded `PyQt-gpl-5.3.1.tar.gz`).
 
@@ -78,20 +78,11 @@ echo export PYTHONPATH=\$PYTHONPATH:/System/Library/Frameworks/Python.framework/
 source ~/.profile
 ```
 
-Now get the source code and set up the virtualenv:
+Get the source code:
 
 ```sh
 git clone https://github.com/micahflee/onionshare.git
 cd onionshare
-virtualenv env
-. env/bin/activate
-pip install flask stem pyinstaller itsdangerous
-```
-
-Each time you start work:
-
-```sh
-. env/bin/activate
 ```
 
 To build the .app:
