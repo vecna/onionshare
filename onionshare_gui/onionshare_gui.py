@@ -1,7 +1,9 @@
 import os, sys, subprocess, inspect, platform, argparse
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
+
+from PyQt5.QtCore import Qt, QThread
+from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog
+from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtGui import QIcon
 
 if platform.system() == 'Darwin':
     onionshare_gui_dir = os.path.dirname(__file__)
