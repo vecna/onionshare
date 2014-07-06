@@ -34,9 +34,7 @@ Set up your development environment:
 * Install Xcode from the Mac App Store.
 * Go to http://qt-project.org/downloads and download and install the latest Qt5 for Mac.
 * If you don't already have pip, install it with `sudo easy_install pip`.
-* Install the easy dependencies: `sudo pip install flask stem pyinstaller itsdangerous`
-* Go to http://www.riverbankcomputing.co.uk/software/sip/download and download the latest SIP for Mac (I downloaded `sip-4.16.2.tar.gz`).
-* Go to http://www.riverbankcomputing.co.uk/software/pyqt/download5 and download the latest PyQt5 for Mac (I downloaded `PyQt-gpl-5.3.1.tar.gz`).
+* Install the easy dependencies: `sudo pip install flask stem itsdangerous`
 
 After installing Qt5, make sure its bin directory is added to your path:
 
@@ -45,7 +43,16 @@ echo export PATH=\$PATH:~/Qt/5.3/clang_64/bin >> ~/.profile
 source ~/.profile
 ```
 
-Now compile SIP:
+Go to http://www.pyinstaller.org/ and download the latest PyInstaller development release, because 2.1 stable doesn't support PyQt5 (I donwloaded `pyinstaller-pyinstaller-v2.0-837-gf7faf1c.tar.gz`). Then install it:
+
+```sh
+cd ~/Downloads
+tar -xvf pyinstaller-pyinstaller-v2.0-837-gf7faf1c.tar.gz
+cd pyinstaller-pyinstaller-f7faf1c/
+sudo python setup.py install
+```
+
+Go to http://www.riverbankcomputing.co.uk/software/sip/download and download the latest SIP for Mac (I downloaded `sip-4.16.2.tar.gz`). Then compile and install it:
 
 ```sh
 cd ~/Downloads/
@@ -60,7 +67,7 @@ echo export PATH=\$PATH:/System/Library/Frameworks/Python.framework/Versions/2.7
 source ~/.profile
 ```
 
-Now compile PyQt5:
+Go to http://www.riverbankcomputing.co.uk/software/pyqt/download5 and download the latest PyQt5 for Mac (I downloaded `PyQt-gpl-5.3.1.tar.gz`). Then compile and install it:
 
 ```sh
 cd ~/Downloads/
