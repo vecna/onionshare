@@ -29,20 +29,63 @@ sudo yum install -y dist/onionshare-*.rpm
 
 ## Mac OS X
 
-To install the right dependencies, you need homebrew and pip installed on your Mac. Follow instructions at http://brew.sh/ to install homebrew, and run `sudo easy_install pip` to install pip.
+Set up your development environment:
 
-The first time you're setting up your dev environment:
+* Install Xcode from the Mac App Store.
+* Go to http://qt-project.org/downloads and download and install the latest Qt5 for Mac.
+* If you don't already have pip, install it with `sudo easy_install pip`.
+* Install virtualenv with `sudo pip install virtualenv`.
+* Go to http://www.riverbankcomputing.co.uk/software/sip/download and download the latest SIP for Mac (I downloaded `sip-4.16.2.tar.gz`).
+* Go to http://www.riverbankcomputing.co.uk/software/pyqt/download5 and download the latest PyQt5 for Mac (I downloaded `PyQt-gpl-5.3.1.tar.gz`).
+
+After installing Qt5, make sure its bin directory is added to your path:
+
+```sh
+echo export PATH=\$PATH:~/Qt/5.3/clang_64/bin >> ~/.profile
+source ~/.profile
+```
+
+Now compile SIP:
+
+```sh
+cd ~/Downloads/
+tar -xvf sip-4.16.2.tar.gz
+cd sip-4.16.2
+python configure.py
+make
+sudo make install
+
+# make sip available in path too
+echo export PATH=\$PATH:/System/Library/Frameworks/Python.framework/Versions/2.7/bin/ >> ~/.profile
+source ~/.profile
+```
+
+Now compile PyQt5:
+
+```sh
+cd ~/Downloads/
+tar -xvf PyQt-gpl-5.3.1.tar.gz
+cd PyQt-gpl-5.3.1
+python configure.py
+# type "yes" to accept the license
+make
+sudo make install
+```
+
+Now make sure python can find PyQt5 on your system:
+```sh
+echo export PYTHONPATH=\$PYTHONPATH:/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages >> ~/.profile
+source ~/.profile
+```
+
+Now get the source code and set up the virtualenv:
 
 ```sh
 git clone https://github.com/micahflee/onionshare.git
 cd onionshare
-echo export PYTHONPATH=\$PYTHONPATH:/usr/local/lib/python2.7/site-packages/ >> ~/.profile
-source ~/.profile
-brew install qt4 pyqt
-sudo pip install virtualenv
 virtualenv env
 . env/bin/activate
-pip install flask stem pyinstaller
+pip install flask stem pyinstaller itsdangerous
 ```
 
 Each time you start work:
