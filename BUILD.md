@@ -29,26 +29,46 @@ sudo yum install -y dist/onionshare-*.rpm
 
 ## Mac OS X
 
-To install the right dependencies, you need homebrew and pip installed on your Mac. Follow instructions at http://brew.sh/ to install homebrew, and run `sudo easy_install pip` to install pip.
+Set up your development environment:
 
-The first time you're setting up your dev environment:
+* Install Xcode from the Mac App Store.
+* Go to http://qt-project.org/downloads and download and install Qt 4.8.6 for Mac (you have to click "Show downloads").
+* If you don't already have pip, install it with `sudo easy_install pip`.
+* Install the easy dependencies: `sudo pip install flask stem itsdangerous pyinstaller`
+
+Go to http://www.riverbankcomputing.co.uk/software/sip/download and download the latest SIP for Mac (I downloaded `sip-4.16.2.tar.gz`). Then compile and install it:
+
+```sh
+cd ~/Downloads/
+tar -xvf sip-4.16.2.tar.gz
+cd sip-4.16.2
+python configure.py
+make
+sudo make install
+
+# make sip available in path
+echo export PATH=\$PATH:/System/Library/Frameworks/Python.framework/Versions/2.7/bin/ >> ~/.profile
+source ~/.profile
+```
+
+Go to http://www.riverbankcomputing.co.uk/software/pyqt/download and download the latest PyQt4 for Mac (I downloaded `PyQt-mac-gpl-4.11.1.tar.gz`). Then compile and install it:
+
+```sh
+cd ~/Downloads/
+tar -xvf tar -xvf PyQt-mac-gpl-4.11.1.tar.gz
+cd PyQt-mac-gpl-4.11.1
+python configure.py
+# type "yes" to accept the license
+make
+# this will take a while
+sudo make install
+```
+
+Get the source code:
 
 ```sh
 git clone https://github.com/micahflee/onionshare.git
 cd onionshare
-echo export PYTHONPATH=\$PYTHONPATH:/usr/local/lib/python2.7/site-packages/ >> ~/.profile
-source ~/.profile
-brew install qt4 pyqt
-sudo pip install virtualenv
-virtualenv env
-. env/bin/activate
-pip install flask stem pyinstaller
-```
-
-Each time you start work:
-
-```sh
-. env/bin/activate
 ```
 
 To build the .app:
