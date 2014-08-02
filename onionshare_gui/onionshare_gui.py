@@ -34,7 +34,7 @@ class OnionShareGui(QtGui.QWidget):
         self.setWindowIcon(self.window_icon)
 
         # file selection
-        file_selection = FileSelection(onionshare_gui_dir)
+        file_selection = FileSelection(onionshare, onionshare_gui_dir)
 
         # main layout
         self.layout = QtGui.QHBoxLayout()

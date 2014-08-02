@@ -4,8 +4,9 @@ from PyQt4 import QtCore, QtGui
 class FileList(QtGui.QListWidget):
     files_dropped = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, onionshare, parent=None):
         super(FileList, self).__init__(parent)
+        self.onionshare = onionshare
         self.setAcceptDrops(True)
         self.setIconSize(QtCore.QSize(32, 32))
 
@@ -52,7 +53,7 @@ class FileList(QtGui.QListWidget):
             fileinfo = QtCore.QFileInfo(filename)
             ip = QtGui.QFileIconProvider()
             icon = ip.icon(fileinfo)
-            size = onionshare.human_readable_filesize(fileinfo.size())
+            size = self.onionshare.human_readable_filesize(fileinfo.size())
 
             item = QtGui.QListWidgetItem('{0} ({1})'.format(basename, size))
             item.setIcon(icon)
@@ -60,12 +61,13 @@ class FileList(QtGui.QListWidget):
             self.addItem(item)
 
 class FileSelection(QtGui.QVBoxLayout):
-    def __init__(self, onionshare_gui_dir):
+    def __init__(self, onionshare, onionshare_gui_dir):
         super(FileSelection, self).__init__()
+        self.onionshare = onionshare
         self.onionshare_gui_dir = onionshare_gui_dir
 
         # file list
-        self.file_list = FileList()
+        self.file_list = FileList(onionshare)
         self.file_list.currentItemChanged.connect(self.update)
         self.file_list.files_dropped.connect(self.update)
 
@@ -98,7 +100,7 @@ class FileSelection(QtGui.QVBoxLayout):
             self.file_list.setStyleSheet('')
 
     def add_file(self):
-        filename = QtGui.QFileDialog.getOpenFileName(caption=translated('choose_file'), options=QtGui.QFileDialog.ReadOnly)
+        filename = QtGui.QFileDialog.getOpenFileName(caption=self.onionshare.translated('choose_file'), options=QtGui.QFileDialog.ReadOnly)
         if filename:
             self.file_list.add_file(str(filename))
         self.update()
