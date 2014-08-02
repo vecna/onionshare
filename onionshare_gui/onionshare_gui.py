@@ -1,7 +1,5 @@
-import os, sys, subprocess, inspect, platform, argparse
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
+import os, sys, subprocess, inspect, platform, argparse, mimetypes
+from PyQt4 import QtCore, QtGui
 
 if platform.system() == 'Darwin':
     onionshare_gui_dir = os.path.dirname(__file__)
@@ -14,67 +12,171 @@ except ImportError:
     sys.path.append(os.path.abspath(onionshare_gui_dir+"/.."))
     import onionshare
 from onionshare import translated
-import webapp
 
-window_icon = None
-
-class Application(QApplication):
+class Application(QtGui.QApplication):
     def __init__(self):
         platform = onionshare.get_platform()
         if platform == 'Tails' or platform == 'Linux':
-            self.setAttribute(Qt.AA_X11InitThreads, True)
+            self.setAttribute(QtCore.Qt.AA_X11InitThreads, True)
 
-        QApplication.__init__(self, sys.argv)
+        QtGui.QApplication.__init__(self, sys.argv)
 
-class WebAppThread(QThread):
-    def __init__(self, webapp_port):
-        QThread.__init__(self)
-        self.webapp_port = webapp_port
+class FileList(QtGui.QListWidget):
+    files_dropped = QtCore.pyqtSignal()
 
-    def run(self):
-        webapp.app.run(port=self.webapp_port)
+    def __init__(self, parent=None):
+        super(FileList, self).__init__(parent)
+        self.setAcceptDrops(True)
+        self.setIconSize(QtCore.QSize(32, 32))
 
-class Window(QWebView):
-    def __init__(self, basename, webapp_port):
-        global window_icon
-        QWebView.__init__(self)
-        self.setWindowTitle("{0} | OnionShare".format(basename))
-        self.resize(580, 400)
-        self.setMinimumSize(580, 400)
-        self.setMaximumSize(580, 400)
-        self.setWindowIcon(window_icon)
-        self.load(QUrl("http://127.0.0.1:{0}".format(webapp_port)))
+        self.filenames = []
 
-def alert(msg, icon=QMessageBox.NoIcon):
-    global window_icon
-    dialog = QMessageBox()
-    dialog.setWindowTitle("OnionShare")
-    dialog.setWindowIcon(window_icon)
-    dialog.setText(msg)
-    dialog.setIcon(icon)
-    dialog.exec_()
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
 
-def select_file(strings, filename=None):
-    # get filename, either from argument or file chooser dialog
-    if not filename:
-        args = {}
-        if onionshare.get_platform() == 'Tails':
-            args['directory'] = '/home/amnesia'
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls:
+            valid_files = False
+            for url in event.mimeData().urls():
+                filename = str(url.toLocalFile())
+                if os.path.isfile(filename):
+                    valid_files = True
+            if valid_files:
+                event.setDropAction(QtCore.Qt.CopyAction)
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.ignore()
 
-        filename = QFileDialog.getOpenFileName(caption=translated('choose_file'), options=QFileDialog.ReadOnly, **args)
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+            for url in event.mimeData().urls():
+                filename = str(url.toLocalFile())
+                if os.path.isfile(filename):
+                    self.add_file(filename)
+        else:
+            event.ignore()
+        self.files_dropped.emit()
+
+    def add_file(self, filename):
+        if filename not in self.filenames:
+            self.filenames.append(filename)
+
+            basename = os.path.basename(filename)
+            fileinfo = QtCore.QFileInfo(filename)
+            ip = QtGui.QFileIconProvider()
+            icon = ip.icon(fileinfo)
+            size = onionshare.human_readable_filesize(fileinfo.size())
+
+            item = QtGui.QListWidgetItem('{0} ({1})'.format(basename, size))
+            item.setIcon(icon)
+            item.setToolTip(QtCore.QString(size))
+            self.addItem(item)
+
+class FileSelection(QtGui.QVBoxLayout):
+    def __init__(self):
+        super(FileSelection, self).__init__()
+
+        # file list
+        self.file_list = FileList()
+        self.file_list.currentItemChanged.connect(self.update)
+        self.file_list.files_dropped.connect(self.update)
+
+        # buttons
+        self.add_button = QtGui.QPushButton('Add')
+        self.add_button.clicked.connect(self.add_file)
+        self.delete_button = QtGui.QPushButton('Delete')
+        self.delete_button.clicked.connect(self.delete_file)
+        button_layout = QtGui.QHBoxLayout()
+        button_layout.addWidget(self.add_button)
+        button_layout.addWidget(self.delete_button)
+        self.update()
+
+        # add the widgets
+        self.addWidget(self.file_list)
+        self.addLayout(button_layout)
+
+    def update(self):
+        # delete button should be disabled if item isn't selected
+        current_item = self.file_list.currentItem()
+        if not current_item:
+            self.delete_button.setEnabled(False)
+        else:
+            self.delete_button.setEnabled(True)
+
+        # file list should have a background image if empty
+        if len(self.file_list.filenames) == 0:
+            self.file_list.setStyleSheet('background: url(drop_files.png) no-repeat center center')
+        else:
+            self.file_list.setStyleSheet('')
+
+    def add_file(self):
+        filename = QtGui.QFileDialog.getOpenFileName(caption=translated('choose_file'), options=QtGui.QFileDialog.ReadOnly)
+        if filename:
+            self.file_list.add_file(str(filename))
+        self.update()
+
+    def delete_file(self):
+        current_row = self.file_list.currentRow()
+        self.file_list.filenames.pop(current_row)
+        self.file_list.takeItem(current_row)
+        self.update()
+
+class OnionShareGui(QtGui.QWidget):
+    def __init__(self):
+        global onionshare_gui_dir
+        super(OnionShareGui, self).__init__()
+        self.window_icon = QtGui.QIcon("{0}/onionshare-icon.png".format(onionshare_gui_dir))
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle('OnionShare')
+        self.setWindowIcon(self.window_icon)
+
+        # file selection
+        file_selection = FileSelection()
+
+        # main layout
+        self.layout = QtGui.QHBoxLayout()
+        self.layout.addLayout(file_selection)
+        self.setLayout(self.layout)
+        self.show()
+
+    def alert(self, msg, icon=QtGui.QMessageBox.NoIcon):
+        dialog = QtGui.QMessageBox()
+        dialog.setWindowTitle("OnionShare")
+        dialog.setWindowIcon(self.window_icon)
+        dialog.setText(msg)
+        dialog.setIcon(icon)
+        dialog.exec_()
+
+    def select_file(self, strings, filename=None):
+        # get filename, either from argument or file chooser dialog
         if not filename:
+            args = {}
+            if onionshare.get_platform() == 'Tails':
+                args['directory'] = '/home/amnesia'
+
+            filename = QtGui.QFileDialog.getOpenFileName(caption=translated('choose_file'), options=QtGui.QFileDialog.ReadOnly, **args)
+            if not filename:
+                return False, False
+
+            filename = str(filename)
+
+        # validate filename
+        if not os.path.isfile(filename):
+            alert(translated("not_a_file").format(filename), QtGui.QMessageBox.Warning)
             return False, False
 
-        filename = str(filename)
-
-    # validate filename
-    if not os.path.isfile(filename):
-        alert(translated("not_a_file").format(filename), QMessageBox.Warning)
-        return False, False
-
-    filename = os.path.abspath(filename)
-    basename = os.path.basename(filename)
-    return filename, basename
+        filename = os.path.abspath(filename)
+        basename = os.path.basename(filename)
+        return filename, basename
 
 def main():
     onionshare.strings = onionshare.load_strings()
@@ -102,10 +204,6 @@ def main():
 
     onionshare.set_stay_open(stay_open)
 
-    # create the onionshare icon
-    global window_icon, onionshare_gui_dir
-    window_icon = QIcon("{0}/onionshare-icon.png".format(onionshare_gui_dir))
-
     # try starting hidden service
     onionshare_port = onionshare.choose_port()
     local_host = "127.0.0.1:{0}".format(onionshare_port)
@@ -113,45 +211,17 @@ def main():
         try:
             onion_host = onionshare.start_hidden_service(onionshare_port)
         except onionshare.NoTor as e:
-            alert(e.args[0], QMessageBox.Warning)
+            alert(e.args[0], QtGui.QMessageBox.Warning)
             return
     onionshare.tails_open_port(onionshare_port)
-
-    # select file to share
-    filename, basename = select_file(onionshare.strings, filename)
-    if not filename:
-        return
-
-    # initialize the web app
-    webapp.onionshare = onionshare
-    webapp.onionshare_port = onionshare_port
-    webapp.filename = filename
-    webapp.qtapp = app
-    webapp.clipboard = app.clipboard()
-    webapp.stay_open = stay_open
-    if not local_only:
-        webapp.onion_host = onion_host
-    else:
-        webapp.onion_host = local_host
-    if debug:
-        onionshare.debug_mode()
-        webapp.debug_mode()
-
-    # run the web app in a new thread
-    webapp_port = onionshare.choose_port()
-    onionshare.tails_open_port(webapp_port)
-    webapp_thread = WebAppThread(webapp_port)
-    webapp_thread.start()
 
     # clean up when app quits
     def shutdown():
         onionshare.tails_close_port(onionshare_port)
-        onionshare.tails_close_port(webapp_port)
-    app.connect(app, SIGNAL("aboutToQuit()"), shutdown)
+    app.connect(app, QtCore.SIGNAL("aboutToQuit()"), shutdown)
 
     # launch the window
-    web = Window(basename, webapp_port)
-    web.show()
+    gui = OnionShareGui()
 
     # all done
     sys.exit(app.exec_())
