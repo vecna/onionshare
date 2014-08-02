@@ -2,10 +2,7 @@ import os, sys, subprocess, inspect, platform, argparse, mimetypes
 from PyQt4 import QtCore, QtGui
 from file_selection import FileSelection
 
-if platform.system() == 'Darwin':
-    onionshare_gui_dir = os.path.dirname(__file__)
-else:
-    onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 try:
     import onionshare
@@ -24,7 +21,6 @@ class Application(QtGui.QApplication):
 
 class OnionShareGui(QtGui.QWidget):
     def __init__(self):
-        global onionshare_gui_dir
         super(OnionShareGui, self).__init__()
         self.window_icon = QtGui.QIcon("{0}/onionshare-icon.png".format(onionshare_gui_dir))
         self.init_ui()
@@ -34,7 +30,7 @@ class OnionShareGui(QtGui.QWidget):
         self.setWindowIcon(self.window_icon)
 
         # file selection
-        file_selection = FileSelection(onionshare, onionshare_gui_dir)
+        file_selection = FileSelection(onionshare)
 
         # main layout
         self.layout = QtGui.QHBoxLayout()

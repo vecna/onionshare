@@ -1,5 +1,7 @@
-import os
+import os, inspect
 from PyQt4 import QtCore, QtGui
+
+onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 class FileList(QtGui.QListWidget):
     files_dropped = QtCore.pyqtSignal()
@@ -10,7 +12,24 @@ class FileList(QtGui.QListWidget):
         self.setAcceptDrops(True)
         self.setIconSize(QtCore.QSize(32, 32))
 
+        # drag and drop label
+        self.drop_label = QtGui.QLabel(QtCore.QString('Drag and drop\nfiles here'), parent=self)
+        self.drop_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.drop_label.setStyleSheet('background: url({0}/drop_files.png) no-repeat center center; color: #999999;'.format(onionshare_gui_dir))
+        self.drop_label.hide()
+
         self.filenames = []
+        self.update()
+
+    def update(self):
+        # file list should have a background image if empty
+        if len(self.filenames) == 0:
+            self.drop_label.show()
+        else:
+            self.drop_label.hide()
+
+    def resizeEvent(self, event):
+        self.drop_label.setGeometry(0, 0, self.width(), self.height())
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:
@@ -61,10 +80,9 @@ class FileList(QtGui.QListWidget):
             self.addItem(item)
 
 class FileSelection(QtGui.QVBoxLayout):
-    def __init__(self, onionshare, onionshare_gui_dir):
+    def __init__(self, onionshare):
         super(FileSelection, self).__init__()
         self.onionshare = onionshare
-        self.onionshare_gui_dir = onionshare_gui_dir
 
         # file list
         self.file_list = FileList(onionshare)
@@ -79,11 +97,12 @@ class FileSelection(QtGui.QVBoxLayout):
         button_layout = QtGui.QHBoxLayout()
         button_layout.addWidget(self.add_button)
         button_layout.addWidget(self.delete_button)
-        self.update()
 
         # add the widgets
         self.addWidget(self.file_list)
         self.addLayout(button_layout)
+
+        self.update()
 
     def update(self):
         # delete button should be disabled if item isn't selected
@@ -93,11 +112,8 @@ class FileSelection(QtGui.QVBoxLayout):
         else:
             self.delete_button.setEnabled(True)
 
-        # file list should have a background image if empty
-        if len(self.file_list.filenames) == 0:
-            self.file_list.setStyleSheet('background: url({0}/drop_files.png) no-repeat center center'.format(self.onionshare_gui_dir))
-        else:
-            self.file_list.setStyleSheet('')
+        # update the file list
+        self.file_list.update()
 
     def add_file(self):
         filename = QtGui.QFileDialog.getOpenFileName(caption=self.onionshare.translated('choose_file'), options=QtGui.QFileDialog.ReadOnly)
@@ -110,5 +126,4 @@ class FileSelection(QtGui.QVBoxLayout):
         self.file_list.filenames.pop(current_row)
         self.file_list.takeItem(current_row)
         self.update()
-
 
