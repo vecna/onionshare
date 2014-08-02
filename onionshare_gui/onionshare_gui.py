@@ -2,7 +2,10 @@ import os, sys, subprocess, inspect, platform, argparse, mimetypes
 from PyQt4 import QtCore, QtGui
 from file_selection import FileSelection
 
-onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+if platform.system() == 'Darwin':
+    onionshare_gui_dir = os.path.dirname(__file__)
+else:
+    onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 try:
     import onionshare

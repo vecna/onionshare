@@ -1,7 +1,10 @@
-import os, inspect
+import os, inspect, platform
 from PyQt4 import QtCore, QtGui
 
-onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+if platform.system() == 'Darwin':
+    onionshare_gui_dir = os.path.dirname(__file__)
+else:
+    onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 class FileList(QtGui.QListWidget):
     files_dropped = QtCore.pyqtSignal()
