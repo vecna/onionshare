@@ -8,7 +8,7 @@ a.datas += [
     ('onionshare/strings.json', 'onionshare/strings.json', 'DATA'),
     ('onionshare/index.html', 'onionshare/index.html', 'DATA'),
     ('onionshare/404.html', 'onionshare/404.html', 'DATA'),
-    ('onionshare_gui/onionshare-icon.png', 'onionshare_gui/onionshare-icon.png', 'DATA'),
+    ('onionshare_gui/icon.png', 'onionshare_gui/icon.png', 'DATA'),
     ('onionshare_gui/drop_files.png', 'onionshare_gui/drop_files.png', 'DATA'),
 ]
 pyz = PYZ(a.pure)

@@ -1,10 +1,6 @@
 import os, inspect, platform
 from PyQt4 import QtCore, QtGui
-
-if platform.system() == 'Darwin':
-    onionshare_gui_dir = os.path.dirname(__file__)
-else:
-    onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+import common
 
 class FileList(QtGui.QListWidget):
     files_dropped = QtCore.pyqtSignal()
@@ -18,7 +14,7 @@ class FileList(QtGui.QListWidget):
         # drag and drop label
         self.drop_label = QtGui.QLabel(QtCore.QString('Drag and drop\nfiles here'), parent=self)
         self.drop_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.drop_label.setStyleSheet('background: url({0}/drop_files.png) no-repeat center center; color: #999999;'.format(onionshare_gui_dir))
+        self.drop_label.setStyleSheet('background: url({0}/drop_files.png) no-repeat center center; color: #999999;'.format(common.onionshare_gui_dir))
         self.drop_label.hide()
 
         self.filenames = []

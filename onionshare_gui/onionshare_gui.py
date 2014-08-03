@@ -1,16 +1,13 @@
 import os, sys, subprocess, inspect, platform, argparse, mimetypes
 from PyQt4 import QtCore, QtGui
 from file_selection import FileSelection
-
-if platform.system() == 'Darwin':
-    onionshare_gui_dir = os.path.dirname(__file__)
-else:
-    onionshare_gui_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+from controls import Controls
+import common
 
 try:
     import onionshare
 except ImportError:
-    sys.path.append(os.path.abspath(onionshare_gui_dir+"/.."))
+    sys.path.append(os.path.abspath(common.onionshare_gui_dir+"/.."))
     import onionshare
 from onionshare import translated
 
@@ -25,19 +22,25 @@ class Application(QtGui.QApplication):
 class OnionShareGui(QtGui.QWidget):
     def __init__(self):
         super(OnionShareGui, self).__init__()
-        self.window_icon = QtGui.QIcon("{0}/onionshare-icon.png".format(onionshare_gui_dir))
         self.init_ui()
 
     def init_ui(self):
         self.setWindowTitle('OnionShare')
+
+        # icon
+        self.window_icon = QtGui.QIcon("{0}/onionshare-icon.png".format(common.onionshare_gui_dir))
         self.setWindowIcon(self.window_icon)
 
         # file selection
         file_selection = FileSelection(onionshare)
 
+        # controls
+        controls = Controls(onionshare, file_selection)
+
         # main layout
         self.layout = QtGui.QHBoxLayout()
         self.layout.addLayout(file_selection)
+        self.layout.addLayout(controls)
         self.setLayout(self.layout)
         self.show()
 
@@ -64,7 +67,7 @@ class OnionShareGui(QtGui.QWidget):
 
         # validate filename
         if not os.path.isfile(filename):
-            alert(translated("not_a_file").format(filename), QtGui.QMessageBox.Warning)
+            self.alert(translated("not_a_file").format(filename), QtGui.QMessageBox.Warning)
             return False, False
 
         filename = os.path.abspath(filename)
