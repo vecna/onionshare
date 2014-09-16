@@ -88,7 +88,6 @@ class OnionShare(object):
             else:
                 # come up with a hidden service directory name
                 hidserv_dir = '{0}/onionshare_{1}'.format(helpers.get_tmp_dir(), helpers.random_string(8))
-                print hidserv_dir
                 self.cleanup_filenames.append(hidserv_dir)
 
                 # connect to the tor controlport

@@ -82,13 +82,20 @@ def dir_size(start_path):
     return total_size
 
 def get_tmp_dir():
+    """
+    In Linux check if a memory only FS is available
+    """
     if get_platform() == "Windows":
         if 'Temp' in os.environ:
             temp = os.environ['Temp'].replace('\\', '/')
         else:
             temp = 'C:/tmp'
     else:
-        temp = '/tmp'
+        memory_safe_dir = '/dev/shm/'
+        if os.path.isdir(memory_safe_dir):
+            temp = memory_safe_dir
+        else:
+            temp = '/tmp'
     return temp
 
 class ZipWriter(object):
