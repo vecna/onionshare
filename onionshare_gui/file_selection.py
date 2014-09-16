@@ -34,7 +34,7 @@ class FileList(QtGui.QListWidget):
         self.setSortingEnabled(True)
 
         # drag and drop label
-        self.drop_label = QtGui.QLabel(QtCore.QString(strings._('gui_drag_and_drop')), parent=self)
+        self.drop_label = QtGui.QLabel(QtCore.QString(strings._('gui_drag_and_drop', True)), parent=self)
         self.drop_label.setAlignment(QtCore.Qt.AlignCenter)
         self.drop_label.setStyleSheet('background: url({0}) no-repeat center center; color: #999999;'.format(common.get_image_path('drop_files.png')))
         self.drop_label.hide()
@@ -78,10 +78,13 @@ class FileList(QtGui.QListWidget):
 
     def add_file(self, filename):
         if filename not in self.filenames:
+            # make filenames unicode-safe for Qt (#141)
+            filename = filename.encode('utf-8').decode('utf-8', 'replace')
+
             self.filenames.append(filename)
 
-            basename = os.path.basename(filename)
             fileinfo = QtCore.QFileInfo(filename)
+            basename = os.path.basename(filename)
             ip = QtGui.QFileIconProvider()
             icon = ip.icon(fileinfo)
 
@@ -89,9 +92,10 @@ class FileList(QtGui.QListWidget):
                 size = self.human_readable_filesize(fileinfo.size())
             else:
                 size = self.human_readable_filesize(helpers.dir_size(filename))
-            item = QtGui.QListWidgetItem('{0} ({1})'.format(basename, size))
+            item_name = unicode('{0} ({1})'.format(basename, size))
+            item = QtGui.QListWidgetItem(item_name)
             item.setToolTip(QtCore.QString(size))
-            
+
             item.setIcon(icon)
             self.addItem(item)
 
@@ -120,11 +124,11 @@ class FileSelection(QtGui.QVBoxLayout):
         self.file_list.files_dropped.connect(self.update)
 
         # buttons
-        self.add_files_button = QtGui.QPushButton(strings._('gui_add_files'))
+        self.add_files_button = QtGui.QPushButton(strings._('gui_add_files', True))
         self.add_files_button.clicked.connect(self.add_files)
-        self.add_dir_button = QtGui.QPushButton(strings._('gui_add_folder'))
+        self.add_dir_button = QtGui.QPushButton(strings._('gui_add_folder', True))
         self.add_dir_button.clicked.connect(self.add_dir)
-        self.delete_button = QtGui.QPushButton(strings._('gui_delete'))
+        self.delete_button = QtGui.QPushButton(strings._('gui_delete', True))
         self.delete_button.clicked.connect(self.delete_file)
         button_layout = QtGui.QHBoxLayout()
         button_layout.addWidget(self.add_files_button)
@@ -158,14 +162,14 @@ class FileSelection(QtGui.QVBoxLayout):
         self.file_list.update()
 
     def add_files(self):
-        filenames = QtGui.QFileDialog.getOpenFileNames(caption=strings._('gui_choose_files'), options=QtGui.QFileDialog.ReadOnly)
+        filenames = QtGui.QFileDialog.getOpenFileNames(caption=strings._('gui_choose_files', True), options=QtGui.QFileDialog.ReadOnly)
         if filenames:
             for filename in filenames:
                 self.file_list.add_file(str(filename))
         self.update()
 
     def add_dir(self):
-        filename = QtGui.QFileDialog.getExistingDirectory(caption=strings._('gui_choose_folder'), options=QtGui.QFileDialog.ReadOnly)
+        filename = QtGui.QFileDialog.getExistingDirectory(caption=strings._('gui_choose_folder', True), options=QtGui.QFileDialog.ReadOnly)
         if filename:
             self.file_list.add_file(str(filename))
         self.update()
@@ -180,7 +184,7 @@ class FileSelection(QtGui.QVBoxLayout):
         self.server_on = True
         self.file_list.setAcceptDrops(False)
         self.update()
-    
+
     def server_stopped(self):
         self.server_on = False
         self.file_list.setAcceptDrops(True)
