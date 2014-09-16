@@ -34,9 +34,9 @@ def get_onionshare_dir():
     return onionshare_dir
 
 def constant_time_compare(val1, val2):
-    _builtin_constant_time_compare = getattr(hmac, 'compare_digest', None)
-    if _builtin_constant_time_compare is not None:
-        return _builtin_constant_time_compare(val1, val2)
+
+    if hasattr(hmac, 'compare_digest'):
+        return getattr(hmac, 'compare_digest', None)(val1, val2)
 
     len_eq = len(val1) == len(val2)
     if len_eq:

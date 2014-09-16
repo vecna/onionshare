@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import Queue, mimetypes, platform, os, sys, zipfile, urllib2
+import Queue, mimetypes, platform, os, sys, urllib2
 from flask import Flask, Response, request, render_template_string, abort
 
 import strings, helpers

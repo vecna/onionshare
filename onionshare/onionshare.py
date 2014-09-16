@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import os, sys, subprocess, time, argparse, inspect, shutil, socket, threading, urllib2
+import os, sys, subprocess, time, argparse, shutil, socket, threading, urllib2
 import socks
 
 from stem.control import Controller
@@ -77,7 +77,7 @@ class OnionShare(object):
                 self.onion_host = stdout
             else:
                 if p.poll() == -1:
-                    raise TailsError(o.stderr.read())
+                    raise TailsError(sys.stderr.read())
                 else:
                     raise TailsError(strings._("error_tails_unknown_root"))
 
@@ -88,6 +88,7 @@ class OnionShare(object):
             else:
                 # come up with a hidden service directory name
                 hidserv_dir = '{0}/onionshare_{1}'.format(helpers.get_tmp_dir(), helpers.random_string(8))
+                print hidserv_dir
                 self.cleanup_filenames.append(hidserv_dir)
 
                 # connect to the tor controlport
@@ -177,7 +178,7 @@ def tails_root():
         app = OnionShare()
         app.choose_port()
         app.port = port
-        app.start_hidden_service(False, True)
+        app.start_hidden_service(gui=False, tails_root=True)
         sys.stdout.write(app.onion_host)
         sys.stdout.flush()
 
@@ -227,7 +228,7 @@ def main():
         app = OnionShare(debug, local_only, stay_open)
         app.choose_port()
         print strings._("connecting_ctrlport").format(app.port)
-        app.start_hidden_service()
+        app.start_hidden_service(gui=False, tails_root=False)
     except NoTor as e:
         sys.exit(e.args[0])
     except TailsError as e:
